@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="enter_passowrd">Podaj login</string>
+    <string name="enter_username">Podaj hasło</string>
+    <string name="login">Zaloguj</string>
+</resources>
