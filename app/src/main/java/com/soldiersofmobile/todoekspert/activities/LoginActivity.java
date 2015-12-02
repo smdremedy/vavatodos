@@ -1,29 +1,24 @@
-package com.soldiersofmobile.todoekspert;
+package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.soldiersofmobile.todoekspert.App;
+import com.soldiersofmobile.todoekspert.BuildConfig;
+import com.soldiersofmobile.todoekspert.LoginManager;
+import com.soldiersofmobile.todoekspert.R;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.converter.GsonConverter;
 
 public class LoginActivity extends AppCompatActivity implements LoginManager.LoginCallback {
 
@@ -39,7 +34,8 @@ public class LoginActivity extends AppCompatActivity implements LoginManager.Log
     @Bind(R.id.progressBar)
     ProgressBar progressBar;
 
-    private LoginManager loginManager;
+    @Inject
+    LoginManager loginManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +43,7 @@ public class LoginActivity extends AppCompatActivity implements LoginManager.Log
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
 
-        loginManager = new LoginManager(
-                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+        App.getTodoComponent().inject(this);
 
         if(BuildConfig.DEBUG) {
             usernameEditText.setText("test");

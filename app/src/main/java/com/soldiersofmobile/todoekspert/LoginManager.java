@@ -11,10 +11,14 @@ import android.view.View;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.converter.GsonConverter;
 
+@Singleton
 public class LoginManager {
 
     public static final String USER_ID = "userId";
@@ -23,14 +27,23 @@ public class LoginManager {
     private String userId;
     private String token;
     private SharedPreferences preferences;
+    private TodoApi todoApi;
 
     private LoginCallback loginCallback;
+    private AsyncTask<String, Integer, LoginResponse> asyncTask;
 
+    @Inject
     public LoginManager(SharedPreferences preferences) {
         this.preferences = preferences;
 
         userId = preferences.getString(USER_ID, null);
         token = preferences.getString(TOKEN, null);
+    }
+
+
+    @Inject
+    public void setTodoApi(TodoApi todoApi) {
+        this.todoApi = todoApi;
     }
 
     public boolean hasToLogin() {
@@ -48,54 +61,47 @@ public class LoginManager {
     }
 
     public void login(String username, String password) {
-        AsyncTask<String, Integer, LoginResponse> asyncTask = new AsyncTask<String, Integer, LoginResponse>() {
+        if (asyncTask == null) {
+            asyncTask = new AsyncTask<String, Integer, LoginResponse>() {
 
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                if(loginCallback != null) {
-                    loginCallback.beforeLogin();
-                }
-            }
-
-            @Override
-            protected LoginResponse doInBackground(String... params) {
-
-                Gson gson = new GsonBuilder()
-                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                        .create();
-
-                RestAdapter.Builder builder = new RestAdapter.Builder();
-                builder.setEndpoint("https://api.parse.com/1");
-                builder.setConverter(new GsonConverter(gson));
-                builder.setLogLevel(BuildConfig.DEBUG ? RestAdapter.LogLevel.FULL
-                        : RestAdapter.LogLevel.NONE);
-                RestAdapter adapter = builder.build();
-                TodoApi todoApi = adapter.create(TodoApi.class);
-                try {
-                    return todoApi.login(params[0], params[1]);
-                } catch (RetrofitError error) {
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(LoginResponse result) {
-                super.onPostExecute(result);
-                if (result != null) {
-                    saveUser(result.getObjectId(), result.getSessionToken());
-                    if(loginCallback != null) {
-                        loginCallback.loginDone();
-                    }
-                } else {
-                    if(loginCallback != null) {
-                        loginCallback.loginError("Login error");
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    if (loginCallback != null) {
+                        loginCallback.beforeLogin();
                     }
                 }
-            }
-        };
 
-        asyncTask.execute(username, password);
+                @Override
+                protected LoginResponse doInBackground(String... params) {
+
+
+                    try {
+                        return todoApi.login(params[0], params[1]);
+                    } catch (RetrofitError error) {
+                        return null;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(LoginResponse result) {
+                    super.onPostExecute(result);
+                    asyncTask = null;
+                    if (result != null) {
+                        saveUser(result.getObjectId(), result.getSessionToken());
+                        if (loginCallback != null) {
+                            loginCallback.loginDone();
+                        }
+                    } else {
+                        if (loginCallback != null) {
+                            loginCallback.loginError("Login error");
+                        }
+                    }
+                }
+            };
+
+            asyncTask.execute(username, password);
+        }
     }
 
     private void saveUser(String userId, String token) {
@@ -127,7 +133,9 @@ public class LoginManager {
 
     public interface LoginCallback {
         void loginDone();
+
         void loginError(String message);
+
         void beforeLogin();
     }
 }

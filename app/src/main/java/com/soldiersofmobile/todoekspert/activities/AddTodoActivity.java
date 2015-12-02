@@ -1,4 +1,4 @@
-package com.soldiersofmobile.todoekspert;
+package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+
+import com.soldiersofmobile.todoekspert.R;
+import com.soldiersofmobile.todoekspert.Todo;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -41,8 +44,8 @@ public class AddTodoActivity extends AppCompatActivity {
 
         Todo todo = new Todo();
 
-        todo.content = contentEditText.getText().toString();
-        todo.done = doneCheckBox.isChecked();
+        todo.setContent(contentEditText.getText().toString());
+        todo.setDone(doneCheckBox.isChecked());
 
         intent.putExtra(TODO, todo);
 

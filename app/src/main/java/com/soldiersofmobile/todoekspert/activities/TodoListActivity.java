@@ -1,10 +1,9 @@
-package com.soldiersofmobile.todoekspert;
+package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Activity;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -12,19 +11,35 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.soldiersofmobile.todoekspert.App;
+import com.soldiersofmobile.todoekspert.LoginManager;
+import com.soldiersofmobile.todoekspert.R;
+import com.soldiersofmobile.todoekspert.Todo;
+import com.soldiersofmobile.todoekspert.TodoApi;
+import com.soldiersofmobile.todoekspert.TodosResponse;
+
+import javax.inject.Inject;
+
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
 public class TodoListActivity extends AppCompatActivity {
 
     public static final int REQUEST_CODE = 123;
     private static final String LOG_TAG = TodoListActivity.class.getSimpleName();
-    private SharedPreferences preferences;
-    private LoginManager loginManager;
+
+    @Inject
+    LoginManager loginManager;
+    @Inject
+    TodoApi todoApi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-        loginManager = new LoginManager(preferences);
+        App.getTodoComponent().inject(this);
+
         if (loginManager.hasToLogin()) {
             //not logged
             goToLogin();
@@ -53,6 +68,17 @@ public class TodoListActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_CODE);
                 break;
             case R.id.action_refresh:
+                todoApi.getTodos(loginManager.getToken(), new Callback<TodosResponse>() {
+                    @Override
+                    public void success(TodosResponse todosResponse, Response response) {
+
+                    }
+
+                    @Override
+                    public void failure(RetrofitError error) {
+
+                    }
+                });
                 break;
             case R.id.action_logout:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
