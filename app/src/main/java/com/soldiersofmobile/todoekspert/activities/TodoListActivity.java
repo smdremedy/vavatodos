@@ -22,6 +22,8 @@ import com.soldiersofmobile.todoekspert.R;
 import com.soldiersofmobile.todoekspert.Todo;
 import com.soldiersofmobile.todoekspert.TodoApi;
 import com.soldiersofmobile.todoekspert.TodosResponse;
+import com.soldiersofmobile.todoekspert.db.DbHelper;
+import com.soldiersofmobile.todoekspert.db.TodoDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +101,6 @@ public class TodoListActivity extends AppCompatActivity {
                 viewHolder = new ViewHolder(view);
             }
 
-
             Todo todo = getItem(position);
 
             viewHolder.itemCheckBox.setChecked(todo.isDone());
@@ -157,8 +158,12 @@ public class TodoListActivity extends AppCompatActivity {
                         adapter.clear();
                         adapter.addAll(todosResponse.results);
 
+                        TodoDao todoDao = new TodoDao(new DbHelper(getApplicationContext()));
+
                         for (Todo todo : todosResponse.results) {
                             Log.d(LOG_TAG, todo.toString());
+
+                            todoDao.insertOrUpdate(todo);
 
                         }
 
