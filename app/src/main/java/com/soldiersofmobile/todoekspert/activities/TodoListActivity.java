@@ -2,14 +2,18 @@ package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ListView;
 
 import com.soldiersofmobile.todoekspert.App;
 import com.soldiersofmobile.todoekspert.LoginManager;
@@ -20,6 +24,8 @@ import com.soldiersofmobile.todoekspert.TodosResponse;
 
 import javax.inject.Inject;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -34,6 +40,10 @@ public class TodoListActivity extends AppCompatActivity {
     @Inject
     TodoApi todoApi;
 
+    @Bind(R.id.todosListView)
+    ListView todosListView;
+    private ArrayAdapter<Todo> adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +56,27 @@ public class TodoListActivity extends AppCompatActivity {
             return;
         }
         setContentView(R.layout.activity_todo_list);
+        ButterKnife.bind(this);
+
+        adapter = new ArrayAdapter<Todo>(this, R.layout.todo_item, R.id.itemCheckBox) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                CheckBox itemCheckBox = (CheckBox) view.findViewById(R.id.itemCheckBox);
+                Button itemButton = (Button) view.findViewById(R.id.itemButton);
+
+
+                Todo todo = getItem(position);
+
+                itemCheckBox.setChecked(todo.isDone());
+                itemCheckBox.setText(todo.getContent());
+                itemButton.setEnabled(!todo.isDone());
+
+                return view;
+            }
+        };
+        todosListView.setAdapter(adapter);
+
     }
 
     private void goToLogin() {
@@ -71,6 +102,14 @@ public class TodoListActivity extends AppCompatActivity {
                 todoApi.getTodos(loginManager.getToken(), new Callback<TodosResponse>() {
                     @Override
                     public void success(TodosResponse todosResponse, Response response) {
+
+                        adapter.clear();
+                        adapter.addAll(todosResponse.results);
+
+                        for (Todo todo : todosResponse.results) {
+                            Log.d(LOG_TAG, todo.toString());
+
+                        }
 
                     }
 
