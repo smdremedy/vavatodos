@@ -2,6 +2,7 @@ package com.soldiersofmobile.todoekspert;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.widget.Toast;
 
 import com.soldiersofmobile.todoekspert.db.TodoDao;
 
@@ -37,5 +38,7 @@ public class RefreshIntentService extends IntentService {
 
         Intent broadcast = new Intent(ACTION);
         sendBroadcast(broadcast);
+
+
     }
 }

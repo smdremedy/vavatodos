@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 
 import com.soldiersofmobile.todoekspert.App;
 import com.soldiersofmobile.todoekspert.LoginManager;
@@ -67,6 +68,7 @@ public class TodoListActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             refreshCursor();
+            Toast.makeText(getApplicationContext(), "Refreshed!", Toast.LENGTH_SHORT).show();
 
         }
     };
