@@ -1,7 +1,10 @@
 package com.soldiersofmobile.todoekspert.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -21,6 +24,7 @@ import android.widget.SimpleCursorAdapter;
 import com.soldiersofmobile.todoekspert.App;
 import com.soldiersofmobile.todoekspert.LoginManager;
 import com.soldiersofmobile.todoekspert.R;
+import com.soldiersofmobile.todoekspert.RefreshIntentService;
 import com.soldiersofmobile.todoekspert.Todo;
 import com.soldiersofmobile.todoekspert.TodoApi;
 import com.soldiersofmobile.todoekspert.TodosResponse;
@@ -58,6 +62,26 @@ public class TodoListActivity extends AppCompatActivity {
 
     @Inject
     TodoDao todoDao;
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            refreshCursor();
+
+        }
+    };
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(receiver, new IntentFilter(RefreshIntentService.ACTION));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,30 +207,33 @@ public class TodoListActivity extends AppCompatActivity {
                 startActivityForResult(intent, REQUEST_CODE);
                 break;
             case R.id.action_refresh:
-                todoApi.getTodos(loginManager.getToken(), new Callback<TodosResponse>() {
-                    @Override
-                    public void success(TodosResponse todosResponse, Response response) {
+//                todoApi.getTodos(loginManager.getToken(), new Callback<TodosResponse>() {
+//                    @Override
+//                    public void success(TodosResponse todosResponse, Response response) {
+//
+//                        adapter.clear();
+//                        adapter.addAll(todosResponse.results);
+//
+//
+//
+//                        for (Todo todo : todosResponse.results) {
+//                            Log.d(LOG_TAG, todo.toString());
+//
+//                            todoDao.insertOrUpdate(todo);
+//
+//                        }
+//                        refreshCursor();
+//
+//                    }
+//
+//                    @Override
+//                    public void failure(RetrofitError error) {
+//
+//                    }
+//                });
+                Intent refreshIntent = new Intent(getApplicationContext(), RefreshIntentService.class);
+                startService(refreshIntent);
 
-                        adapter.clear();
-                        adapter.addAll(todosResponse.results);
-
-
-
-                        for (Todo todo : todosResponse.results) {
-                            Log.d(LOG_TAG, todo.toString());
-
-                            todoDao.insertOrUpdate(todo);
-
-                        }
-                        refreshCursor();
-
-                    }
-
-                    @Override
-                    public void failure(RetrofitError error) {
-
-                    }
-                });
                 break;
             case R.id.action_logout:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
