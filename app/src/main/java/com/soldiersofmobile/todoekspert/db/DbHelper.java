@@ -4,10 +4,15 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import timber.log.Timber;
 
+@Singleton
 public class DbHelper extends SQLiteOpenHelper {
 
+    @Inject
     public DbHelper(Context context) {
         super(context, "todos.db", null, 1);
     }

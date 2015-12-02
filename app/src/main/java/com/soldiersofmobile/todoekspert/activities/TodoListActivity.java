@@ -2,6 +2,7 @@ package com.soldiersofmobile.todoekspert.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import com.soldiersofmobile.todoekspert.App;
 import com.soldiersofmobile.todoekspert.LoginManager;
@@ -50,11 +52,19 @@ public class TodoListActivity extends AppCompatActivity {
     ListView todosListView;
     private TodoAdapter adapter;
 
+    private SimpleCursorAdapter simpleCursorAdapter;
+    private String[] from = {TodoDao.C_CONTENT, TodoDao.C_DONE, TodoDao.C_DONE};
+    private int[] to = {R.id.itemCheckBox, R.id.itemCheckBox, R.id.itemButton};
+
+    @Inject
+    TodoDao todoDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         App.getTodoComponent().inject(this);
+
 
         if (loginManager.hasToLogin()) {
             //not logged
@@ -65,7 +75,29 @@ public class TodoListActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         adapter = new TodoAdapter();
-        todosListView.setAdapter(adapter);
+        simpleCursorAdapter = new SimpleCursorAdapter(this, R.layout.todo_item,
+                null, from, to, 0);
+        simpleCursorAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+                if(columnIndex == cursor.getColumnIndex(TodoDao.C_DONE)
+                        && view.getId() == R.id.itemCheckBox) {
+                    CheckBox checkBox = (CheckBox) view;
+                    int doneValue = cursor.getInt(columnIndex);
+                    checkBox.setChecked(doneValue > 0);
+                    return true;
+                } else if(view.getId() == R.id.itemButton) {
+                    int doneValue = cursor.getInt(columnIndex);
+                    view.setEnabled(doneValue == 0);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        todosListView.setAdapter(simpleCursorAdapter);
+
+        refreshCursor();
 
     }
 
@@ -158,7 +190,7 @@ public class TodoListActivity extends AppCompatActivity {
                         adapter.clear();
                         adapter.addAll(todosResponse.results);
 
-                        TodoDao todoDao = new TodoDao(new DbHelper(getApplicationContext()));
+
 
                         for (Todo todo : todosResponse.results) {
                             Log.d(LOG_TAG, todo.toString());
@@ -166,6 +198,7 @@ public class TodoListActivity extends AppCompatActivity {
                             todoDao.insertOrUpdate(todo);
 
                         }
+                        refreshCursor();
 
                     }
 
@@ -195,6 +228,11 @@ public class TodoListActivity extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void refreshCursor() {
+        Cursor cursor = todoDao.query(loginManager.getUserId(), true);
+        simpleCursorAdapter.swapCursor(cursor);
     }
 
     @Override

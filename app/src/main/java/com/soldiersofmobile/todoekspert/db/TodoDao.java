@@ -1,13 +1,18 @@
 package com.soldiersofmobile.todoekspert.db;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.soldiersofmobile.todoekspert.Todo;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * Created by Sylwester on 2015-12-02.
  */
+@Singleton
 public class TodoDao {
 
     /**
@@ -28,6 +33,7 @@ public class TodoDao {
 
     private final DbHelper dbHelper;
 
+    @Inject
     public TodoDao(DbHelper dbHelper) {
 
         this.dbHelper = dbHelper;
@@ -50,5 +56,13 @@ public class TodoDao {
         db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
 
 
+    }
+
+    public Cursor query(String userId, boolean sortAsc) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        //SELECT * FROM todos WHERE user_id=? ORDER BY todos ASC/DESC
+        return db.query(TABLE_NAME, null, String.format("%s=?", C_USER_ID),
+                new String[]{userId}, null, null,
+                String.format("%s %s", C_UPDATED_AT, sortAsc ? "ASC" : "DESC"));
     }
 }
