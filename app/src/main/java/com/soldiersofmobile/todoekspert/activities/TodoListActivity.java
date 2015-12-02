@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
@@ -21,6 +22,9 @@ import com.soldiersofmobile.todoekspert.R;
 import com.soldiersofmobile.todoekspert.Todo;
 import com.soldiersofmobile.todoekspert.TodoApi;
 import com.soldiersofmobile.todoekspert.TodosResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -42,7 +46,7 @@ public class TodoListActivity extends AppCompatActivity {
 
     @Bind(R.id.todosListView)
     ListView todosListView;
-    private ArrayAdapter<Todo> adapter;
+    private TodoAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,25 +62,72 @@ public class TodoListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_todo_list);
         ButterKnife.bind(this);
 
-        adapter = new ArrayAdapter<Todo>(this, R.layout.todo_item, R.id.itemCheckBox) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View view = super.getView(position, convertView, parent);
-                CheckBox itemCheckBox = (CheckBox) view.findViewById(R.id.itemCheckBox);
-                Button itemButton = (Button) view.findViewById(R.id.itemButton);
-
-
-                Todo todo = getItem(position);
-
-                itemCheckBox.setChecked(todo.isDone());
-                itemCheckBox.setText(todo.getContent());
-                itemButton.setEnabled(!todo.isDone());
-
-                return view;
-            }
-        };
+        adapter = new TodoAdapter();
         todosListView.setAdapter(adapter);
 
+    }
+
+    class TodoAdapter extends BaseAdapter {
+
+        private ArrayList<Todo> todos = new ArrayList<>();
+
+        @Override
+        public int getCount() {
+            return todos.size();
+        }
+
+        @Override
+        public Todo getItem(int position) {
+            return todos.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            View view = convertView;
+            if(view == null) {
+                view = getLayoutInflater().inflate(R.layout.todo_item, parent, false);
+            }
+
+            ViewHolder viewHolder = (ViewHolder) view.getTag();
+            if(viewHolder == null) {
+                viewHolder = new ViewHolder(view);
+            }
+
+
+            Todo todo = getItem(position);
+
+            viewHolder.itemCheckBox.setChecked(todo.isDone());
+            viewHolder.itemCheckBox.setText(todo.getContent());
+            viewHolder.itemButton.setEnabled(!todo.isDone());
+            return view;
+        }
+
+
+        public void clear() {
+            todos.clear();
+            notifyDataSetInvalidated();
+        }
+
+        public void addAll(List<Todo> results) {
+            todos.addAll(results);
+            notifyDataSetChanged();
+        }
+    }
+
+    class ViewHolder {
+        CheckBox itemCheckBox;
+        Button itemButton;
+
+        public ViewHolder(View view) {
+            itemCheckBox = (CheckBox) view.findViewById(R.id.itemCheckBox);
+            itemButton = (Button) view.findViewById(R.id.itemButton);
+        }
     }
 
     private void goToLogin() {
