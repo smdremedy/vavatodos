@@ -25,12 +25,10 @@ import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.converter.GsonConverter;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements LoginManager.LoginCallback {
 
 
     private static final String LOG_TAG = LoginActivity.class.getSimpleName();
-    public static final String USER_ID = "userId";
-    public static final String TOKEN = "token";
 
     @Bind(R.id.usernameEditText)
     EditText usernameEditText;
@@ -41,16 +39,33 @@ public class LoginActivity extends AppCompatActivity {
     @Bind(R.id.progressBar)
     ProgressBar progressBar;
 
+    private LoginManager loginManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
 
+        loginManager = new LoginManager(
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+
         if(BuildConfig.DEBUG) {
             usernameEditText.setText("test");
             passwordEditText.setText("test");
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loginManager.setLoginCallback(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        loginManager.setLoginCallback(null);
     }
 
     @OnClick(R.id.loginButton)
@@ -71,74 +86,30 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (!hasErrors) {
-            login(username, password);
+            loginManager.login(username, password);
         }
     }
 
-    private void login(String username, final String password) {
-
-        AsyncTask<String, Integer, LoginResponse> asyncTask = new AsyncTask<String, Integer, LoginResponse>() {
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                loginButton.setEnabled(false);
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            protected LoginResponse doInBackground(String... params) {
-
-                Gson gson = new GsonBuilder()
-                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                        .create();
-
-                RestAdapter.Builder builder = new RestAdapter.Builder();
-                builder.setEndpoint("https://api.parse.com/1");
-                builder.setConverter(new GsonConverter(gson));
-                builder.setLogLevel(BuildConfig.DEBUG ? RestAdapter.LogLevel.FULL
-                        : RestAdapter.LogLevel.NONE);
-                RestAdapter adapter = builder.build();
-                TodoApi todoApi = adapter.create(TodoApi.class);
-                try {
-                    return todoApi.login(params[0], params[1]);
-                } catch (RetrofitError error) {
-                    return null;
-                }
 
 
-            }
-
-            @Override
-            protected void onProgressUpdate(Integer... values) {
-                super.onProgressUpdate(values);
-                progressBar.setProgress(values[0]);
-            }
-
-            @Override
-            protected void onPostExecute(LoginResponse result) {
-                super.onPostExecute(result);
-                if (result != null) {
-
-                    SharedPreferences preferences
-                            = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString(USER_ID, result.getObjectId());
-                    editor.putString(TOKEN, result.getSessionToken());
-                    editor.apply();
-
-                    Intent intent = new Intent(LoginActivity.this, TodoListActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
-                loginButton.setEnabled(true);
-                progressBar.setVisibility(View.GONE);
-
-            }
-        };
-
-        asyncTask.execute(username, password);
-
+    @Override
+    public void loginDone() {
+        Intent intent = new Intent(LoginActivity.this, TodoListActivity.class);
+        startActivity(intent);
+        finish();
     }
 
+    @Override
+    public void loginError(String message) {
+
+        loginButton.setEnabled(true);
+        progressBar.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void beforeLogin() {
+
+        loginButton.setEnabled(false);
+        progressBar.setVisibility(View.VISIBLE);
+    }
 }

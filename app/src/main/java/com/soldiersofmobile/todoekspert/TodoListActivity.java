@@ -17,13 +17,15 @@ public class TodoListActivity extends AppCompatActivity {
     public static final int REQUEST_CODE = 123;
     private static final String LOG_TAG = TodoListActivity.class.getSimpleName();
     private SharedPreferences preferences;
+    private LoginManager loginManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-        if (preferences.getString(LoginActivity.TOKEN, "").isEmpty()) {
+        loginManager = new LoginManager(preferences);
+        if (loginManager.hasToLogin()) {
             //not logged
             goToLogin();
             return;
@@ -60,7 +62,8 @@ public class TodoListActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        preferences.edit().clear().apply();
+                        loginManager.logout();
+
 
                         goToLogin();
                     }
