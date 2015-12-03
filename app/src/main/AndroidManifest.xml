@@ -23,7 +23,7 @@
         </activity>
         <activity android:name=".activities.AddTodoActivity"></activity>
 
-        <service android:name=".RefreshIntentService"/>
+        <service android:name=".RefreshIntentService" />
     </application>
 
 </manifest>

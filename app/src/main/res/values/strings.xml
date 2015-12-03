@@ -14,4 +14,6 @@
     <string name="create_todo">Create Todo</string>
     <string name="done">Done</string>
     <string name="delete">Delete</string>
+    <string name="notification_message">You have %1$d new todos.</string>
+    <string name="notification_title">New todos</string>
 </resources>

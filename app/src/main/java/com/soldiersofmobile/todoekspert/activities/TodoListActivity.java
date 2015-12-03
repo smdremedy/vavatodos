@@ -125,6 +125,13 @@ public class TodoListActivity extends AppCompatActivity {
 
         refreshCursor();
 
+        onNewIntent(getIntent());
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
     }
 
     class TodoAdapter extends BaseAdapter {
