@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.NotificationCompat;
@@ -40,12 +41,19 @@ public class RefreshIntentService extends IntentService {
 
         TodosResponse todosResponse = todoApi.getTodos(loginManager.getToken());
         for (Todo todo : todosResponse.results) {
-            todoDao.insertOrUpdate(todo);
+            //todoDao.insertOrUpdate(todo);
+            ContentValues values = new ContentValues();
+            values.put(TodoDao.C_ID, todo.objectId);
+            values.put(TodoDao.C_CONTENT, todo.getContent());
+            values.put(TodoDao.C_DONE, todo.isDone());
+            values.put(TodoDao.C_USER_ID, todo.user.objectId);
+
+            getContentResolver().insert(TodoProvider.CONTENT_URI, values);
             Timber.d("Added:" + todo);
         }
 
-        Intent broadcast = new Intent(ACTION);
-        sendBroadcast(broadcast);
+//        Intent broadcast = new Intent(ACTION);
+//        sendBroadcast(broadcast);
         sendTimelineNotification(10);
 
 
@@ -85,8 +93,6 @@ public class RefreshIntentService extends IntentService {
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
         builder.addAction(R.drawable.ic_action_sort_by_size, "Sort", contentIntent);
-
-
 
 
         builder.setContentIntent(contentIntent);

@@ -24,6 +24,10 @@
         <activity android:name=".activities.AddTodoActivity"></activity>
 
         <service android:name=".RefreshIntentService" />
+        <provider
+            android:authorities="com.soldiersofmobile.todoekspert"
+            android:name=".TodoProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

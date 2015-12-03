@@ -1,10 +1,13 @@
 package com.soldiersofmobile.todoekspert.activities;
 
+import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -28,6 +31,7 @@ import com.soldiersofmobile.todoekspert.R;
 import com.soldiersofmobile.todoekspert.RefreshIntentService;
 import com.soldiersofmobile.todoekspert.Todo;
 import com.soldiersofmobile.todoekspert.TodoApi;
+import com.soldiersofmobile.todoekspert.TodoProvider;
 import com.soldiersofmobile.todoekspert.TodosResponse;
 import com.soldiersofmobile.todoekspert.db.DbHelper;
 import com.soldiersofmobile.todoekspert.db.TodoDao;
@@ -43,7 +47,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class TodoListActivity extends AppCompatActivity {
+public class TodoListActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final int REQUEST_CODE = 123;
     private static final String LOG_TAG = TodoListActivity.class.getSimpleName();
@@ -126,6 +130,7 @@ public class TodoListActivity extends AppCompatActivity {
         refreshCursor();
 
         onNewIntent(getIntent());
+        getLoaderManager().initLoader(1, null, this);
 
     }
 
@@ -278,6 +283,30 @@ public class TodoListActivity extends AppCompatActivity {
             Todo todo = (Todo) data.getSerializableExtra(AddTodoActivity.TODO);
             Log.d(LOG_TAG, "Result:" + resultCode + " data:" + todo);
         }
+
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String selection = TodoDao.C_USER_ID + "=?";
+
+        return new CursorLoader(getApplicationContext(),
+                TodoProvider.CONTENT_URI,
+                null, selection, new String []{loginManager.getUserId()},
+                TodoDao.C_UPDATED_AT + " ASC");
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d("TAG", "Reloaded cursor:" + data);
+        simpleCursorAdapter.swapCursor(data);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("TAG", "Reset cursor");
+        simpleCursorAdapter.swapCursor(null);
 
     }
 }
