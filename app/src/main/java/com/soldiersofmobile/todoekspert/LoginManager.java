@@ -33,21 +33,18 @@ public class LoginManager {
     private AsyncTask<String, Integer, LoginResponse> asyncTask;
 
     @Inject
-    public LoginManager(SharedPreferences preferences) {
+    public LoginManager(SharedPreferences preferences, TodoApi todoApi) {
         this.preferences = preferences;
+        this.todoApi = todoApi;
 
         userId = preferences.getString(USER_ID, null);
         token = preferences.getString(TOKEN, null);
     }
 
 
-    @Inject
-    public void setTodoApi(TodoApi todoApi) {
-        this.todoApi = todoApi;
-    }
 
     public boolean hasToLogin() {
-        return TextUtils.isEmpty(token) || TextUtils.isEmpty(userId);
+        return token == null || userId == null;
     }
 
     public void logout() {
